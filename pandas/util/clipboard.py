@@ -51,8 +51,7 @@ import platform
 import os
 from subprocess import call, Popen, PIPE
 
-PY2 = '2' == platform.python_version_tuple()[0]
-text_type = unicode if PY2 else str
+from pandas.compat import bytes_to_str, str_to_bytes, text_type
 
 
 class NoClipboardProgramError(OSError):
@@ -117,13 +116,13 @@ def _copyCygwin(text):
 
 def _copyOSX(text):
     p = Popen(['pbcopy', 'w'], stdin=PIPE, close_fds=True)
-    p.communicate(input=text.encode('utf-8'))
+    p.communicate(input=str_to_bytes(text, 'utf-8'))
 
 
 def _pasteOSX():
     p = Popen(['pbpaste', 'r'], stdout=PIPE, close_fds=True)
     stdout, stderr = p.communicate()
-    return stdout.decode('utf-8')
+    return bytes_to_str(stdout, 'utf-8')
 
 
 def _pasteGtk():
@@ -147,29 +146,29 @@ def _copyQt(text):
 
 def _copyXclip(text):
     p = Popen(['xclip', '-selection', 'c'], stdin=PIPE, close_fds=True)
-    p.communicate(input=text.encode('utf-8'))
+    p.communicate(input=str_to_bytes(text, 'utf-8'))
 
 
 def _pasteXclip():
     p = Popen(['xclip', '-selection', 'c', '-o'], stdout=PIPE, close_fds=True)
     stdout, stderr = p.communicate()
-    return stdout.decode('utf-8')
+    return bytes_to_str(stdout, 'utf-8')
 
 
 def _copyXsel(text):
     p = Popen(['xsel', '-b', '-i'], stdin=PIPE, close_fds=True)
-    p.communicate(input=text.encode('utf-8'))
+    p.communicate(input=str_to_bytes(text, 'utf-8'))
 
 
 def _pasteXsel():
     p = Popen(['xsel', '-b', '-o'], stdout=PIPE, close_fds=True)
     stdout, stderr = p.communicate()
-    return stdout.decode('utf-8')
+    return bytes_to_str(stdout, 'utf-8')
 
 
 def _copyKlipper(text):
     p = Popen(['qdbus', 'org.kde.klipper', '/klipper',
-               'setClipboardContents', text.encode('utf-8')],
+               'setClipboardContents', str_to_bytes(text, 'utf-8')],
               stdin=PIPE, close_fds=True)
     p.communicate(input=None)
 
@@ -178,7 +177,7 @@ def _pasteKlipper():
     p = Popen(['qdbus', 'org.kde.klipper', '/klipper',
                'getClipboardContents'], stdout=PIPE, close_fds=True)
     stdout, stderr = p.communicate()
-    return stdout.decode('utf-8')
+    return bytes_to_str(stdout, 'utf-8')
 
 
 # Determine the OS/platform and set the copy() and paste() functions
